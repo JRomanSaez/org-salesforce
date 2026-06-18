@@ -174,6 +174,43 @@ sf data import tree --files ./data/Account.json
 
 ---
 
+## 7-bis. Backups: estructura vs. datos
+
+Hay **dos tipos de backup** y son distintos:
+
+| | Metadata (estructura) | Datos (registros) |
+|---|---|---|
+| Qué es | Objetos, campos, clases, flujos | Las filas reales (cuentas, contactos…) |
+| Backup | `sf project retrieve` → git | `sf data export` → CSV/JSON |
+| Restaurar | `sf project deploy` desde git | `sf data import` |
+
+> **Regla:** todo objeto/campo que modifiques en la org → tráelo con `retrieve` y
+> haz commit en git. **git es tu backup de estructura.**
+
+### Backup de DATOS (registros)
+
+```powershell
+# Exportar registros de Account a archivo
+sf data export tree --query "SELECT Id, Name, Phone FROM Account" \
+  --output-dir ./backup-datos --target-org miOrg
+
+# Restaurar esos datos más tarde
+sf data import tree --files ./backup-datos/Account.json --target-org miOrg
+```
+
+> Los archivos de datos NO se versionan en git (pueden tener datos sensibles).
+
+### Backup de METADATA
+
+```powershell
+# Traer la definición de un objeto (estándar o custom) al repo
+sf project retrieve start --metadata "CustomObject:Account" --target-org miOrg
+```
+
+> En `sf`, el tipo `CustomObject` vale también para objetos estándar como Account.
+
+---
+
 ## 8. Generar metadata y proyectos (`sf project generate`)
 
 ```powershell
