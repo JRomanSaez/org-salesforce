@@ -27,3 +27,9 @@ Thumbs.db
 .env
 *.key
 authFile.json
+
+# Postman: el entorno lleva client_secret → no versionar con secretos reales
+postman/*.postman_environment.json
+
+# Archivos .http con secretos reales (client_secret / tokens)
+http/*.http

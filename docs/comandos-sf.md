@@ -149,6 +149,31 @@ sf apex list log               # lista de logs guardados
 sf apex get log --log-id <ID>  # descargar un log concreto
 ```
 
+### ⚠️ ¿Cuándo corre tests un deploy?
+
+**Por defecto, `sf project deploy start` NO ejecuta tests en sandbox/dev**, da
+igual que el Apex sea nuevo o modificado (verás `Running Tests: Skipped`).
+
+| Comando en dev/sandbox | ¿Corre tests? |
+|---|---|
+| `deploy start` (por defecto) | **No**, aunque el Apex sea nuevo |
+| `deploy start --test-level RunLocalTests` | **Sí, siempre** |
+| Deploy a **producción** | **Sí, obligatorio** (+75% cobertura) |
+
+```powershell
+# Forzar que corran (lo que usarías en CI/QA):
+sf project deploy start --source-dir force-app --test-level RunLocalTests
+```
+
+Niveles de `--test-level`:
+- `NoTestRun` — no corre (defecto en sandbox)
+- `RunLocalTests` — tus tests, sin los de paquetes gestionados ← **el de CI/QA**
+- `RunAllTestsInOrg` — absolutamente todos
+- `RunSpecifiedTests` — solo los que indiques
+
+> Regla: para garantizar tests, **pídelos siempre con `--test-level`**. No te
+> fíes del comportamiento por defecto.
+
 ---
 
 ## 7. Datos y consultas (`sf data`)

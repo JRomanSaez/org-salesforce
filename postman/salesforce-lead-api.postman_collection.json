@@ -1,0 +1,87 @@
+{
+  "info": {
+    "name": "Salesforce Lead API",
+    "description": "Simula una app externa (tu web) llamando a Salesforce.\n\n1. 'Auth - Client Credentials' obtiene un access_token y lo guarda en la variable de entorno {{access_token}}.\n2. 'Crear Lead' llama al endpoint Apex LeadFormApi usando ese token.\n\nRellena las variables de entorno (ver salesforce-local.postman_environment.json) con tu instance_url, client_id y client_secret.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Auth - Client Credentials",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// Guarda el token y la instancia devueltos para las siguientes requests",
+              "const json = pm.response.json();",
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "pm.test('Hay access_token', () => pm.expect(json.access_token).to.be.a('string'));",
+              "if (json.access_token) {",
+              "  pm.environment.set('access_token', json.access_token);",
+              "}",
+              "if (json.instance_url) {",
+              "  pm.environment.set('instance_url', json.instance_url);",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/x-www-form-urlencoded" }
+        ],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            { "key": "grant_type", "value": "client_credentials" },
+            { "key": "client_id", "value": "{{client_id}}" },
+            { "key": "client_secret", "value": "{{client_secret}}" }
+          ]
+        },
+        "url": {
+          "raw": "{{login_url}}/services/oauth2/token",
+          "host": ["{{login_url}}"],
+          "path": ["services", "oauth2", "token"]
+        },
+        "description": "Obtiene un access_token vía Client Credentials Flow. login_url es tu My Domain (https://orgfarm-....my.salesforce.com)."
+      }
+    },
+    {
+      "name": "Crear Lead",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 201', () => pm.response.to.have.status(201));",
+              "const json = pm.response.json();",
+              "pm.test('ok = true', () => pm.expect(json.ok).to.be.true);",
+              "pm.test('Devuelve leadId', () => pm.expect(json.leadId).to.be.a('string'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{access_token}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nombre\": \"Ana López\",\n  \"email\": \"ana.lopez@ejemplo.com\",\n  \"empresa\": \"Acme\",\n  \"telefono\": \"600123123\"\n}"
+        },
+        "url": {
+          "raw": "{{instance_url}}/services/apexrest/lead-formulario/",
+          "host": ["{{instance_url}}"],
+          "path": ["services", "apexrest", "lead-formulario", ""]
+        },
+        "description": "Llama al endpoint Apex LeadFormApi (@RestResource) para crear un Lead. Usa el token obtenido en la request de Auth."
+      }
+    }
+  ],
+  "variable": []
+}
