@@ -1,0 +1,29 @@
+# Salesforce DX
+.sfdx/
+.sf/
+.localdevserver/
+deploy-options.json
+
+# Logs
+*.log
+
+# Dependencias y build
+node_modules/
+coverage/
+.nyc_output/
+
+# IDE / editores
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+*.swp
+
+# SO
+.DS_Store
+Thumbs.db
+
+# Credenciales / secretos (¡nunca commitear!)
+.env
+*.key
+authFile.json

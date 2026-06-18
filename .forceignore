@@ -1,0 +1,7 @@
+# Metadata que normalmente no se quiere versionar/desplegar
+**/profiles/**
+**/.eslintrc.json
+**/jsconfig.json
+**/__tests__/**
+
+package.xml
