@@ -35,6 +35,22 @@ desarrollo. Son **orgs independientes**:
 
 Se crean desde: **PROD → Setup → Sandboxes → New Sandbox**.
 
+### Qué copia cada tipo (lo eliges al crear la sandbox)
+
+El **tipo** que eliges al crearla determina qué se copia automáticamente. La
+**metadata viene completa siempre**; lo que cambia es **cuántos datos** trae:
+
+| Tipo que eliges | Qué copia |
+|---|---|
+| **Developer** | Solo metadata (estructura + código), **sin datos** |
+| **Developer Pro** | Solo metadata, más espacio de almacenamiento |
+| **Partial Copy** | Metadata + una **muestra** de datos (defines cuánto con una *template*) |
+| **Full** | Metadata + **todos** los datos de prod |
+
+> Regla mental: **el tipo = cuántos DATOS quieres**. La metadata viene entera en
+> todos los casos. En Partial Copy, una *Sandbox Template* define qué objetos
+> entran en la muestra.
+
 ## El código NO se "copia" entre orgs: se DESPLIEGA
 
 Lo que conecta los entornos **no es un fork, es git + deploy**. El mismo repo se
