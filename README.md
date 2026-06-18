@@ -21,14 +21,15 @@ config/project-scratch-def.json    # Definición de Scratch Org
 
 ### 1. Instalar la Salesforce CLI
 
-Descarga e instala desde:
-https://developer.salesforce.com/tools/salesforcecli
-
-O con winget (Windows):
+Vía npm (recomendada, requiere Node.js):
 
 ```powershell
-winget install Salesforce.sf
+npm install --global @salesforce/cli
 ```
+
+> Nota: en winget no existe un paquete oficial fiable (`Salesforce.sfdx-cli` es la
+> CLI antigua deprecada). Usa npm o el instalador oficial:
+> https://developer.salesforce.com/tools/salesforcecli
 
 Verifica:
 
@@ -47,8 +48,11 @@ https://developer.salesforce.com/signup
 ### 3. Autenticar la org
 
 ```powershell
-sf org login web --alias miOrg --set-default
+sf org login web --alias miOrg --set-default --instance-url 'url de la instancia'
 ```
+
+> 📖 Manual completo de comandos `sf` (en español, material de formación):
+> [docs/comandos-sf.md](docs/comandos-sf.md)
 
 ## Flujo de trabajo
 
