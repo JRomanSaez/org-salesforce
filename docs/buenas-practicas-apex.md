@@ -28,6 +28,46 @@ Conocimiento base para el equipo. Aplica a cualquier trigger en Salesforce.
 - Comprueba nulos antes de usar métodos: `acc.Name == null ? 0 : acc.Name.length()`.
 - Evita `NullPointerException` cuando un campo viene vacío.
 
+### 5. Evitar la recursión infinita
+
+Un trigger (o un Flow) que actualiza un registro puede **re-dispararse a sí
+mismo** (o a otro automatismo del mismo objeto), creando un bucle:
+
+```
+update Account → trigger se dispara → update Account → trigger otra vez → ... ♾️
+```
+
+Salesforce lo corta con un error (`Maximum trigger depth exceeded`, ~16 saltos, o
+límites SOQL/DML), pero **tu operación falla**. Dos defensas:
+
+**a) Guard con variable estática** — vive durante toda la transacción y actúa de freno:
+```apex
+public class AccountTriggerHandler {
+    private static Boolean yaEjecutado = false;
+
+    public static void run(List<Account> accs) {
+        if (yaEjecutado) return;   // si ya corrió en esta transacción, salgo
+        yaEjecutado = true;
+        // ... lógica
+    }
+}
+```
+
+**b) Actuar solo si el campo relevante cambió** (lo más efectivo) — compara
+valor viejo (`Trigger.oldMap`) vs. nuevo:
+```apex
+if (acc.Name != Trigger.oldMap.get(acc.Id).Name) {
+    // solo recalculo si Name realmente cambió
+}
+```
+
+> **Regla de oro:** el ciclo se rompe cuando **dejas de escribir si no hay cambio
+> real**. Un automatismo que siempre actualiza, siempre se re-dispara; uno que
+> solo actúa ante un cambio, se detiene solo.
+>
+> Por esto es arriesgado mezclar triggers y Flows sobre el mismo objeto sin
+> coordinarlos: es donde nacen la mayoría de recursiones.
+
 ## Patrón de archivos por cada trigger
 
 | Archivo | Rol |
