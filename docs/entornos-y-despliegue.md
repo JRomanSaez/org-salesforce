@@ -72,9 +72,73 @@ sf project deploy start --source-dir force-app --target-org prod --test-level Ru
 > **Producción / Developer Edition** contra `https://login.salesforce.com`
 > (o el My Domain correspondiente).
 
+## Todas las sandboxes se crean desde PROD (no de QA ni de UAT)
+
+Confusión típica: **no se "saca una sandbox de QA"**. TODAS las sandboxes son
+copias de **producción**. Cada IT/dev pide **su propia Developer Sandbox creada
+desde PROD**.
+
+```
+                  PROD (única fuente)
+                    │  Setup → Sandboxes → New Sandbox
+        ┌───────────┼───────────┬──────────────┐
+        ▼           ▼           ▼              ▼
+       UAT         QA        DEV-juan       DEV-maria
+  (Partial/Full)  (Pro)     (Developer)    (Developer)
+```
+
+"Actualizar" una sandbox con lo último de prod = **Refresh** (la vuelve a copiar).
+
+## Límites de sandboxes (según licencia de PROD)
+
+| Tipo | Cantidad típica (Enterprise) | Refresco mínimo |
+|---|---|---|
+| Developer | ~25-50+ | 1 día |
+| Developer Pro | ~25 | 1 día |
+| Partial Copy | ~5 | 5 días |
+| Full | 1 | 29 días |
+
+Developer son abundantes (una por dev); Full son escasas/caras (add-on de pago).
+
+## ¿Cómo distingue el login si todas usan test.salesforce.com?
+
+Por el **username con sufijo**, no por la URL. `test.salesforce.com` es la puerta
+común; el sufijo indica a qué sandbox entras:
+
+```
+PROD:              juan@empresa.com
+Sandbox "devjuan": juan@empresa.com.devjuan
+Sandbox "qa":      juan@empresa.com.qa
+```
+
+## ¿Cómo trae un dev "todo lo de prod" a su sandbox nueva?
+
+**No hace falta `retrieve` de todo.** Al crear la Developer Sandbox, Salesforce
+**ya copia toda la metadata de prod** automáticamente. La sandbox nace completa.
+
+Separar dos cosas:
+- **Metadata** → ya está en la sandbox desde el minuto cero (la copió de prod).
+- **Código en git** → sirve para el *flujo de trabajo*, no para "traer prod".
+
+Flujo de un dev con su sandbox:
+```bash
+git checkout main && git pull              # main = espejo de PROD
+git checkout -b feature/dev1-loquesea      # rama propia desde main
+# ... desarrolla en su sandbox (que ya tiene todo prod) ...
+sf project retrieve start --metadata ApexClass:MiClase   # SOLO lo que cambia
+git add . && git commit && git push        # PR → merge a main → deploy
+```
+
+Claves:
+- `main` ≈ espejo de PROD (convención: todo deploy a PROD sale de `main`).
+- Creas rama desde `main` y trabajas (sí, tu intuición era correcta).
+- `retrieve` **solo de lo que tú modificas**, no de todo (serían miles de archivos).
+
 ## Resumen mental
 
-- ❌ No hay "fork" de orgs. ❌ UAT no nace de DEV.
-- ✅ UAT/QA/DEV son **Sandboxes creadas desde PROD**.
-- ✅ El **repo git es la fuente única**; el mismo código se **despliega** a cada org.
+- ❌ No hay "fork" de orgs. ❌ UAT no nace de DEV. ❌ No se saca sandbox de QA.
+- ✅ Todas las sandboxes (UAT/QA/DEV) son copias **creadas desde PROD**.
+- ✅ La sandbox nace con **toda la metadata de prod** ya dentro (no hace falta retrieve masivo).
+- ✅ El **repo git es la fuente única** del código; `main` = espejo de PROD.
+- ✅ Cada dev: rama desde `main` → trabaja en su sandbox → retrieve de SUS cambios → PR.
 - ✅ Promoción = deploy a la siguiente org, con tests obligatorios al llegar a PROD.
